@@ -46,8 +46,6 @@ export default function Feed() {
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
 
-  if (!user?.isPremium) return <PremiumGate feature="the social feed" />;
-
   const handleCreatePost = () => {
     if (!newPostContent.trim()) return;
     createPost.mutate({ content: newPostContent, imageUrl: newPostImage || undefined } as any, {
@@ -126,62 +124,82 @@ export default function Feed() {
       </div>
 
       {/* Post Composer */}
-      <div className="bg-card rounded-2xl border border-border/50 mb-4 overflow-hidden shadow-sm">
-        <div className="p-4 flex gap-3">
-          <Avatar className="w-10 h-10 border border-border shrink-0">
-            <AvatarImage src={user?.profileImageUrl || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
-              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <Textarea
-            placeholder={`What's on your mind, ${user?.firstName}?`}
-            value={newPostContent}
-            onChange={(e) => setNewPostContent(e.target.value)}
-            className="min-h-[80px] text-[15px] resize-none border-none focus-visible:ring-0 p-0 bg-transparent"
-          />
-        </div>
-
-        {showImageInput && (
-          <div className="px-4 pb-3 flex gap-2">
-            <Input
-              placeholder="Paste image URL..."
-              value={newPostImage}
-              onChange={e => setNewPostImage(e.target.value)}
-              className="text-sm rounded-xl bg-secondary/30 border-transparent"
+      {user?.isPremium ? (
+        <div className="bg-card rounded-2xl border border-border/50 mb-4 overflow-hidden shadow-sm">
+          <div className="p-4 flex gap-3">
+            <Avatar className="w-10 h-10 border border-border shrink-0">
+              <AvatarImage src={user?.profileImageUrl || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <Textarea
+              placeholder={`What's on your mind, ${user?.firstName}?`}
+              value={newPostContent}
+              onChange={(e) => setNewPostContent(e.target.value)}
+              className="min-h-[80px] text-[15px] resize-none border-none focus-visible:ring-0 p-0 bg-transparent"
             />
-            <Button size="icon" variant="ghost" onClick={() => { setShowImageInput(false); setNewPostImage(""); }}>
-              <X className="w-4 h-4" />
+          </div>
+
+          {showImageInput && (
+            <div className="px-4 pb-3 flex gap-2">
+              <Input
+                placeholder="Paste image URL..."
+                value={newPostImage}
+                onChange={e => setNewPostImage(e.target.value)}
+                className="text-sm rounded-xl bg-secondary/30 border-transparent"
+              />
+              <Button size="icon" variant="ghost" onClick={() => { setShowImageInput(false); setNewPostImage(""); }}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+
+          {newPostImage && (
+            <div className="px-4 pb-3">
+              <img src={newPostImage} alt="Preview" className="rounded-xl w-full max-h-48 object-cover border border-border/30" />
+            </div>
+          )}
+
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border/40">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground rounded-full gap-2"
+              onClick={() => setShowImageInput(!showImageInput)}
+            >
+              <ImageIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">Photo</span>
+            </Button>
+            <Button
+              onClick={handleCreatePost}
+              disabled={createPost.isPending || !newPostContent.trim()}
+              size="sm"
+              className="rounded-full px-6 font-semibold shadow-sm shadow-primary/20"
+            >
+              {createPost.isPending ? "Posting..." : "Post"}
             </Button>
           </div>
-        )}
-
-        {newPostImage && (
-          <div className="px-4 pb-3">
-            <img src={newPostImage} alt="Preview" className="rounded-xl w-full max-h-48 object-cover border border-border/30" />
-          </div>
-        )}
-
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border/40">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground rounded-full gap-2"
-            onClick={() => setShowImageInput(!showImageInput)}
-          >
-            <ImageIcon className="w-4 h-4" />
-            <span className="text-sm font-medium">Photo</span>
-          </Button>
-          <Button
-            onClick={handleCreatePost}
-            disabled={createPost.isPending || !newPostContent.trim()}
-            size="sm"
-            className="rounded-full px-6 font-semibold shadow-sm shadow-primary/20"
-          >
-            {createPost.isPending ? "Posting..." : "Post"}
-          </Button>
         </div>
-      </div>
+      ) : (
+        <div className="bg-card rounded-2xl border border-border/50 mb-4 overflow-hidden shadow-sm">
+          <div className="p-4 flex gap-3 items-center">
+            <Avatar className="w-10 h-10 border border-border shrink-0">
+              <AvatarImage src={user?.profileImageUrl || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 flex items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">Upgrade to Premium to share posts with campus</p>
+              <div className="flex items-center gap-1.5 bg-amber-500/10 text-amber-600 border border-amber-400/30 rounded-full px-3 py-1.5 text-xs font-semibold shrink-0">
+                <Crown className="w-3.5 h-3.5" />
+                Premium
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Posts */}
       <div className="space-y-4">
